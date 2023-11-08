@@ -1,0 +1,221 @@
+---
+title: "Billionaire Dataset Analysis"
+bibliography: references.bib
+---
+
+We study a billionaire dataset which gives us an in depth analysis of the background, profession and other relevant information. The dataset, obtained in Kaggle, describes itself as - "This dataset contains statistics on the world's billionaires, including information about their businesses, industries, and personal details. It provides insights into the wealth distribution, business sectors, and demographics of billionaires worldwide." The data has been compiled from the Forbes Billionaires Wealth list. The intended audience for this data analysis could include researchers, economists, business analysts, policymakers, and anyone interested in studying wealth distribution and the characteristics of billionaires.
+
+::: column-margin
+The Forbes Billionaires Wealth List is an annual ranking of the world's wealthiest individuals compiled and published by Forbes magazine. This list identifies and ranks individuals who have amassed significant wealth through various means, such as entrepreneurship, investments, inheritances, or other financial ventures. Forbes calculates and updates the net worth of these billionaires based on their estimated holdings in publicly traded companies, private assets, real estate, and other investments.
+
+The Forbes Billionaires Wealth List provides detailed information about each billionaire, including their name, source of wealth, country of residence, age, and various financial data. It has become a widely recognized and influential resource for tracking the wealth of the world's richest people, and it is used by investors, researchers, and the media to understand trends in wealth accumulation and distribution. Forbes updates the list annually, allowing readers to see how the rankings change over time.
+:::
+
+Research states that there is a spatial heterogeniety in the distribution of billionaires in the world[@florida2019a].
+
+In this study, we aim to study the distribution of billionaires across the world, on the basis of spatial distribution, as well as other variables of interests.
+
+::: callout-note
+The link for the dataset "https://www.kaggle.com/datasets/nelgiriyewithana/billionaires-statistics-dataset", which also contains a data dictionary. However we also add a data dictionary here for convenience.
+:::
+
+```{r summary}
+#read the dataset
+data_bill=read.csv(file.choose())
+summary(data_bill)
+```
+
+## Data Dictionary
+
+-   **rank**: The rank of the billionaire.
+-   **finalWorth (in million dollars)**: The final worth of the billionaire in million dollars.
+-   **category**: The category to which the billionaire's business/profession belongs.
+-   **personName**: The name of the billionaire.
+-   **age**: The age of the billionaire.
+-   **country**: The country where the billionaire resides.
+-   **city**: The city where the billionaire resides.
+-   **source**: The source of the billionaire's wealth.
+-   **industries**: The industries associated with the billionaire.
+-   **countryOfCitizenship**: The country of citizenship of the billionaire.
+-   **organization**: The organization or company the billionaire is associated with.
+-   **selfMade**: Indicates if the billionaire is self-made.
+-   **status**: The status of the billionaire.
+-   **gender**: The gender of the billionaire.
+-   **birthDate**: The birth date of the billionaire.
+-   **lastName**: The last name of the billionaire.
+-   **firstName**: The first name of the billionaire.
+-   **title**: The title of the billionaire.
+-   **date**: The date associated with the billionaire's data.
+-   **state**: The state associated with the billionaire.
+-   **residenceStateRegion**: The state or region where the billionaire resides.
+-   **birthYear**: The birth year of the billionaire.
+-   **birthMonth**: The birth month of the billionaire.
+-   **birthDay**: The birth day of the billionaire.
+-   **cpi_country**: Consumer Price Index for the country.
+-   **cpi_change_country**: Change in Consumer Price Index for the country.
+-   **gdp_country**: Gross Domestic Product for the country.
+-   **gross_tertiary_education_enrollment**: Gross tertiary education enrollment for the country.
+-   **gross_primary_education_enrollment_country**: Gross primary education enrollment for the country.
+-   **life_expectancy_country**: Life expectancy for the country.
+-   **tax_revenue_country_country**: Tax revenue for the country.
+-   **total_tax_rate_country**: Total tax rate for the country.
+-   **population_country**: Population of the country.
+-   **latitude_country**: Latitude of the country.
+-   **longitude_country**: Longitude of the country.
+
+We now convert the dataset to tibble, for better interpretability.
+
+```{r data formatting}
+library(dplyr)
+library(tidyverse)
+
+data_bill_new=distinct(data_bill)
+data_bill_new=as_tibble(data_bill_new)
+data_bill_new
+
+# Calculate the percentage of missing values for each variable
+library(naniar)
+miss_sum <- miss_var_summary(data_bill_new)
+
+miss_sum
+
+data_bill_new$gdp_country <- gsub(",", "", data_bill_new$gdp_country)
+data_bill_new$gdp_country <- gsub("\\$", "", data_bill_new$gdp_country)
+data_bill_new$gdp_country <- as.numeric(data_bill_new$gdp_country)
+
+#Impute
+library(hdImpute)
+all_cor <- feature_cor(data_bill_new,return_cor = TRUE)
+flat_mat <- flatten_mat(all_cor,
+                        return_mat = TRUE)
+
+#We impute both the test and training data using only the available data from the training data.
+imputed1 <- impute_batches(data = data_bill_new,
+                           features = flat_mat, 
+                           batch = 8)
+
+
+
+```
+
+![Your Image](https://cdn.howmuch.net/content/images/world-map-of-billionaires-5bd3.jpg)
+
+Image taken from- HowMuch.net, a financial literacy website
+
+We now look at various properties which can be derived from the data. The first analysis I do is understanding the representation of various nationalities in the Billionaire's list.
+
+```{r Analysis 1}
+# Load ggplot2
+library(ggplot2)
+
+vec1=as.numeric(table(imputed1$country))
+vec2=as.vector(rownames(table(imputed1$country)))
+table_country=data.frame(cbind(vec2,vec1))
+table_country[,2]=as.numeric(table_country[,2])
+colnames(table_country)=c("country","Freq")
+
+#Countries with most Billionaires 
+arrange(table_country, desc(Freq))
+
+# Basic piechart
+ggplot(table_country, aes(x="", y=Freq, fill= country)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  
+  theme_void() # remove background, grid, numeric labels
+
+```
+I now try to understand the representation of various industries in the Billionaire's list.
+
+```{r Analysis 2}
+
+vec1=as.numeric(table(imputed1$industries))
+vec2=as.vector(rownames(table(imputed1$industries)))
+table_industries=data.frame(cbind(vec2,vec1))
+table_industries[,2]=as.numeric(table_industries[,2])
+colnames(table_industries)=c("industries","Freq")
+
+#Countries with most Billionaires 
+arrange(table_industries, desc(Freq))
+
+# Basic piechart
+ggplot(table_industries, aes(x="", y=Freq, fill= industries)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  
+  theme_void() # remove background, grid, numeric labels
+
+```
+I now try to understand the representation of gender in the Billionaire's list.
+
+```{r Analysis 3}
+
+vec1=as.numeric(table(imputed1$gender))
+vec2=as.vector(rownames(table(imputed1$gender)))
+table_gender=data.frame(cbind(vec2,vec1))
+table_gender[,2]=as.numeric(table_gender[,2])
+colnames(table_gender)=c("gender","Freq")
+
+#Countries with most Billionaires 
+arrange(table_gender, desc(Freq))
+
+# Basic piechart
+ggplot(table_gender, aes(x="", y=Freq, fill= gender)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  
+  theme_void() # remove background, grid, numeric labels
+
+```
+I now try to understand the representation of Self made status in the Billionaire's list.
+
+```{r Analysis 4}
+
+vec1=as.numeric(table(imputed1$selfMade))
+vec2=as.vector(rownames(table(imputed1$selfMade)))
+table_selfMade=data.frame(cbind(vec2,vec1))
+table_selfMade[,2]=as.numeric(table_selfMade[,2])
+colnames(table_selfMade)=c("selfMade","Freq")
+
+#Countries with most Billionaires 
+arrange(table_selfMade, desc(Freq))
+
+# Basic piechart
+ggplot(table_selfMade, aes(x="", y=Freq, fill= selfMade)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  
+  theme_void() # remove background, grid, numeric labels
+
+```
+I now try to understand the representation of Age in the Billionaire's list.
+
+```{r Analysis 5}
+
+vec1=as.numeric(table(imputed1$age))
+vec2=as.vector(rownames(table(imputed1$age)))
+table_age=data.frame(cbind(vec2,vec1))
+table_age[,2]=as.numeric(table_age[,2])
+colnames(table_age)=c("age","Freq")
+
+#Countries with most Billionaires 
+arrange(table_age, desc(Freq))
+
+# Basic piechart
+ggplot(table_age, aes(x= age, y=Freq)) +
+  geom_point(data=table_age)
+ 
+```
+
+::: callout-note We believe this study has helped to understand the distribution of billionaires across the world and the corresponding spatial heterogeneity. :::
+
+I list all the functions from dplyr and tidyverse that I have used in the project- Example_analysis
+1. distinct()
+2. as_tibble()
+3. arrange()
+
+I list all the functions from ggplot that I have used in the project- 
+1.geom_bar
+2.geom_point
+
+## References

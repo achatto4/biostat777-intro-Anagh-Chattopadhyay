@@ -1,0 +1,9 @@
+---
+title: "Welcome to my Home page!"
+---
+
+Hello, I'm Anagh! Welcome to my personal website! Here, you can learn more about me and my interests. Feel free to explore the rest of the site. I enjoy Classical Hindustani music, and love to write poetry and shayaris.
+
+![Your Image](https://poets.org/sites/default/files/images/biographies/FaizFaiz_NewBioImage.jpg) ![Your Image](https://upload.wikimedia.org/wikipedia/commons/2/23/A_classical_Indian_music_performance.jpg) ---
+
+Short Bio- I am Anagh Chattopadhyay, a first-year Ph.D. Candidate at the Department of Biostatistics, Johns Hopkins Bloomberg School of Public Health. My primary research interests are Biostatistics, Health Economics, Health Policy and Machine Learning. I am also interested in the intersection of Health and Linguistics.
